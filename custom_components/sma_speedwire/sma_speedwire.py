@@ -159,6 +159,7 @@ SMA_INV_TYPE = {
     9403: "SB4.0-1AV-41 (Sunny Boy 4.0 AV-41)",
     9404: "SB5.0-1AV-41 (Sunny Boy 5.0 AV-41)",
     9405: "SB6.0-1AV-41 (Sunny Boy 6.0 AV-41)",
+    19048: "STP5.0-3SE-40 (Sunny Tripower 5.0 SE)",
 }
 
 SMA_INV_CLASS = {
@@ -166,6 +167,7 @@ SMA_INV_CLASS = {
     8001: "Solar Inverter",
     8002: "Wind Turbine Inverter",
     8007: "Batterie Inverter",
+    8009: "Hybrid Inverter",
     8033: "Consumer",
     8064: "Sensor System in General",
     8065: "Electricity meter",
