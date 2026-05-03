@@ -21,6 +21,14 @@ COMMAND_LIST = {
     "info":           [0x58000200, 0x00821E00, 0x008220FF],
     "energy":         [0x54000200, 0x00260100, 0x002622FF],
     "power_ac_total": [0x51000200, 0x00263F00, 0x00263FFF],
+    "spot_dc_voltage": [0x53800200, 0x00451F00, 0x00451FFF],
+    "spot_dc_current": [0x53800200, 0x00452100, 0x004521FF],
+    "spot_ac_voltageA": [0x51000200, 0x00464800, 0x004648FF],
+    "spot_ac_voltageB": [0x51000200, 0x00464900, 0x004649FF],
+    "spot_ac_voltageC": [0x51000200, 0x00464A00, 0x00464AFF],
+    "spot_ac_currentA": [0x51000200, 0x00465300, 0x004653FF],
+    "spot_ac_currentB": [0x51000200, 0x00465400, 0x004654FF],
+    "spot_ac_currentC": [0x51000200, 0x00465500, 0x004655FF],
 }
 
 SMA_INV_TYPE = {
@@ -193,9 +201,19 @@ class SMA_SPEEDWIRE:
         self.inv_class = None
         self.inv_type = None
         self.sensors = {
-            "energy_total":   {"name":"Energy Production Total","value":None,"unit":"kWh"},
-            "energy_today":   {"name":"Energy Production Today","value":None,"unit":"kWh"},
-            "power_ac_total": {"name":"Power Production Now","value":None,"unit":"W"},
+            "energy_total":   {"value":None,"unit":"kWh","suggested_unit_of_measurement":"Wh","key":"energy_total","translation_key":"energy_total"},
+            "energy_today":   {"name":"Energy Production Today","value":None,"unit":"kWh", "suggested_unit_of_measurement":"Wh", "key":"energy_today","translation_key":"energy_today"},
+            "power_ac_total": {"name":"Power Production Now","value":None,"unit":"W","suggested_display_precision":"0","key":"power_ac_total","translation_key":"power_ac_total"},
+            "voltage_dc_a": {"name":"DC Voltage string A","value":None,"unit":"V", "suggested_display_precision":"2","key":"voltage_dc_a","translation_key":"voltage_dc_a"},
+            "current_dc_a": {"name":"DC Current string A","value":None,"unit":"A","suggested_display_precision":"3","key":"current_dc_a","translation_key":"current_dc_a"},
+            "spot_ac_voltageA": {"name":"AC Voltage phase A","value":None,"unit":"V", "suggested_display_precision":"2","key":"spot_ac_voltageA","translation_key":"spot_ac_voltageA"},
+            "spot_ac_voltageB": {"name":"AC Voltage phase B","value":None,"unit":"V", "suggested_display_precision":"2","key":"spot_ac_voltageB","translation_key":"spot_ac_voltageB"},
+            "spot_ac_voltageC": {"name":"AC Voltage phase C","value":None,"unit":"V", "suggested_display_precision":"2","key":"spot_ac_voltageC","translation_key":"spot_ac_voltageC"},
+            "spot_ac_currentA": {"name":"AC Current phase A","value":None,"unit":"A", "suggested_display_precision":"3","key":"spot_ac_currentA","translation_key":"spot_ac_currentA"},
+            "spot_ac_currentB": {"name":"AC Current phase B","value":None,"unit":"A", "suggested_display_precision":"3","key":"spot_ac_currentB","translation_key":"spot_ac_currentB"},
+            "spot_ac_currentC": {"name":"AC Current phase C","value":None,"unit":"A", "suggested_display_precision":"3","key":"spot_ac_currentC","translation_key":"spot_ac_currentC"},
+            "spot_sum_ac_current": {"name":"AC Current sum","value":None,"unit":"A", "suggested_display_precision":"3","key":"spot_sum_ac_current","translation_key":"spot_sum_ac_current"},
+
         }
 
         if logger:
@@ -310,30 +328,89 @@ class SMA_SPEEDWIRE:
                     self.inv_class = SMA_INV_CLASS[inv_class]
                 if inv_type in SMA_INV_TYPE:
                     self.inv_type = SMA_INV_TYPE[inv_type]
-                    
+
             elif cmd == 0x2601:
                 if data_len >= 66:
                     value = unpack_from("I", data, offset=62)[0]
                     if (value != 0x80000000) and (value != 0xFFFFFFFF) and (value > 0):
-                        self.sensors['energy_total']['value'] = value / 1000
+                        self.sensors['energy_total']['value'] = value
                 if data_len >= 82:
                     value = unpack_from("I", data, offset=78)[0]
-                    self.sensors['energy_today']['value'] = value / 1000
-
+                    self.sensors['energy_today']['value'] = value
             elif cmd == 0x263F:
                 value = unpack_from("I", data, offset=62)[0]
                 if (value == 0x80000000):
                     value = 0
                 self.sensors['power_ac_total']['value'] = value
+
+            elif cmd == 0x451F:
+                value = unpack_from("I", data, offset=62)[0]
+                if (value == 0x80000000):
+                    value = 0
+                self.sensors['voltage_dc_a']['value'] = value / 100
+
+            elif cmd == 0x4521:
+                value = unpack_from("I", data, offset=62)[0]
+                if (value == 0x80000000):
+                    value = 0
+                self.sensors['current_dc_a']['value'] = value / 1000
+
+            elif cmd == 0x4648:
+                value = unpack_from("I", data, offset=62)[0]
+                if (value == 0x80000000):
+                    value = 0
+                self.sensors['spot_ac_voltageA']['value'] = value / 100
+
+            elif cmd == 0x4649:
+                value = unpack_from("I", data, offset=62)[0]
+                if (value == 0x80000000):
+                    value = 0
+                self.sensors['spot_ac_voltageB']['value'] = value / 100
+
+            elif cmd == 0x464A:
+                value = unpack_from("I", data, offset=62)[0]
+                if (value == 0x80000000):
+                    value = 0
+                self.sensors['spot_ac_voltageC']['value'] = value / 100
+
+            elif cmd == 0x4653:
+                value = unpack_from("I", data, offset=62)[0]
+                if (value == 0x80000000):
+                    value = 0
+                self.sensors['spot_ac_currentA']['value'] = value / 1000
+
+            elif cmd == 0x4654:
+                value = unpack_from("I", data, offset=62)[0]
+                if (value == 0x80000000):
+                    value = 0
+                self.sensors['spot_ac_currentB']['value'] = value / 1000
+
+            elif cmd == 0x4655:
+                value = unpack_from("I", data, offset=62)[0]
+                if (value == 0x80000000):
+                    value = 0
+                self.sensors['spot_ac_currentC']['value'] = value / 1000
+
             return
 
     def init(self):
         self._login()
         self._fetch("info")
         self._logout()
-    
+
     def update(self):
         self._login()
         self._fetch("energy")
         self._fetch("power_ac_total")
+        self._fetch("spot_dc_voltage")
+        self._fetch("spot_dc_current")
+        self._fetch("spot_ac_voltageA")
+        self._fetch("spot_ac_voltageB")
+        self._fetch("spot_ac_voltageC")
+        self._fetch("spot_ac_currentA")
+        self._fetch("spot_ac_currentB")
+        self._fetch("spot_ac_currentC")
+        self.sensors['spot_sum_ac_current']['value'] = (self.sensors['spot_ac_currentA']['value'] +
+            self.sensors['spot_ac_currentB']['value'] +
+            self.sensors['spot_ac_currentC']['value'])
         self._logout()

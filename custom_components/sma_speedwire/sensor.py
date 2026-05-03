@@ -12,6 +12,8 @@ from homeassistant.const import (
     CONF_HOST,
     UnitOfEnergy,
     UnitOfPower,
+    UnitOfElectricPotential,
+    UnitOfElectricCurrent,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
@@ -49,16 +51,32 @@ class SMASensor(CoordinatorEntity, SensorEntity):
         self._sensor = sensor
         self._device = device
         self._attr_unique_id = f"{DOMAIN}_{device}_{sensor}"
-        self._attr_name = coordinator.data.sensors[sensor]['name']
-        # self._attr_icon = "mdi:flash"
+        #self._attr_name = coordinator.data.sensors[sensor]['name']
+        self._attr_key = coordinator.data.sensors[sensor]['key']
+        self._attr_translation_key = coordinator.data.sensors[sensor]['translation_key']
+        self._attr_has_entity_name = True
+
+        if 'suggested_display_precision' in coordinator.data.sensors[sensor]:
+            self._attr_suggested_display_precision = coordinator.data.sensors[sensor]['suggested_display_precision']
+        if 'suggested_unit_of_measurement' in coordinator.data.sensors[sensor]:
+            self._attr_suggested_unit_of_measurement = coordinator.data.sensors[sensor]['suggested_unit_of_measurement']
+
         if coordinator.data.sensors[sensor]['unit'] == 'kWh':
             self._attr_state_class = SensorStateClass.TOTAL_INCREASING
             self._attr_device_class = SensorDeviceClass.ENERGY
-            self._attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+            self._attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
         elif coordinator.data.sensors[sensor]['unit'] == 'W':
             self._attr_state_class = SensorStateClass.MEASUREMENT
             self._attr_device_class = SensorDeviceClass.POWER
             self._attr_native_unit_of_measurement = UnitOfPower.WATT
+        elif coordinator.data.sensors[sensor]['unit'] == 'V':
+            self._attr_state_class = SensorStateClass.MEASUREMENT
+            self._attr_device_class = SensorDeviceClass.VOLTAGE
+            self._attr_native_unit_of_measurement = UnitOfElectricPotential.VOLT
+        elif coordinator.data.sensors[sensor]['unit'] == 'A':
+            self._attr_state_class = SensorStateClass.MEASUREMENT
+            self._attr_device_class = SensorDeviceClass.CURRENT
+            self._attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
     
         # https://developers.home-assistant.io/docs/device_registry_index/
         self._attr_device_info = DeviceInfo(
